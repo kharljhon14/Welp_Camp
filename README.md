@@ -1,4 +1,5 @@
 # Welp_Camp
+A simple Camping reservation website this is made using Express and MongoDB
 
 ## Made using
 Javascript
