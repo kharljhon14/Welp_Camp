@@ -1,20 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
-   <head>
-      <meta charset="UTF-8" />
-      <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>Welp Campgrounds</title>
-   </head>
-   <body>
-      <h1>All Campgrounds</h1>
-      <div>
-          <a href="/campgrounds/new">Add new Campground</a>
+<% layout("layouts/boilerplate") %>
+<h1>All Campgrounds</h1>
+<% for(c of campgrounds){ %>
+<div class="card mb-3">
+   <div class="row">
+      <div class="col-md-4">
+         <img class="img-fluid" alt="" src="<%= c.img %> " />
       </div>
-      <ul>
-         <% for(c of campgrounds){ %>
-         <li><a href="/campgrounds/<%= c._id %>"><%= c.title %></a></li>
-         <% } %>
-      </ul>
-   </body>
-</html>
+      <div class="col-mg-g">
+         <div class="card-body">
+            <h5 class="card-title"><%= c.title %></h5>
+            <p class="card-text"><%= c.description %></p>
+            <p class="card-text">
+               <small class="text-muted"><%= c.location %></small>
+            </p>
+            <a class="btn btn-primary" href="/campgrounds/<%= c._id %>"><%= c.title %></a>
+         </div>
+      </div>
+   </div>
+</div>
+<% } %>

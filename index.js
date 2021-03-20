@@ -9,11 +9,20 @@ const path = require("path");
 const Campground = require("./models/campground");
 //Require method override
 const methodOverride = require("method-override");
+//Require morgan
+const morgan = require("morgan");
+//Require EJS mate
+const ejsEngine = require("ejs-mate");
 
 //Use express parser
 app.use(express.urlencoded({ extended: true }));
 //Use method override
 app.use(methodOverride("_method"));
+//Use morgan
+app.use(morgan("common"));
+
+//Use EJS mate engine
+app.engine("ejs", ejsEngine);
 
 //Set EJS
 app.set("view engine", "ejs");
