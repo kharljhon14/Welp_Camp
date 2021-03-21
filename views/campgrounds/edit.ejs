@@ -6,6 +6,8 @@
       <form
          action="/campgrounds/<%= campground._id %>?_method=put"
          method="POST"
+         novalidate
+         class="validated-form"
       >
          <div class="mb-3">
             <label class="form-label" for="title">Title:</label>
@@ -15,7 +17,11 @@
                name="campground[title]"
                id="title"
                value="<%= campground.title %> "
+               required
             />
+            <div class="valid-feedback">
+               Looks Good My Dude!
+            </div>
          </div>
          <div class="mb-3">
             <label class="form-label" for="location">Location:</label>
@@ -25,6 +31,7 @@
                name="campground[location]"
                id="location"
                value="<%= campground.location %> "
+               required
             />
          </div>
          <div class="mb-3">
@@ -35,6 +42,7 @@
                name="campground[img]"
                id="img"
                value="<%= campground.img %> "
+               required
             />
          </div>
          <div class="mb-3">
@@ -60,6 +68,7 @@
                type="text"
                name="campground[description]"
                id="description"
+               required
             >
 <%= campground.description %></textarea
             >
