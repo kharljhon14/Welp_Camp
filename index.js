@@ -3,43 +3,31 @@ const express = require("express");
 const app = express();
 //Get Mongoose
 const mongoose = require("mongoose");
+//Get Express session
+const session = require("express-session");
+//Get connect flash
+const flash = require("connect-flash");
 //Get path directory
 const path = require("path");
-//Require campground model
-const Campground = require("./models/campground");
-//Require review model
-const Review = require("./models/review");
 //Require method override
 const methodOverride = require("method-override");
 //Require morgan
 const morgan = require("morgan");
-//Require Error middleware
-const wrapAysnc = require("./utils/wrapAysnc");
-const ExpressError = require("./utils/ExpressError");
 //Require EJS mate
 const ejsEngine = require("ejs-mate");
 //Require campground and review schema JOI
 const { campgroundSchema, reviewSchema } = require("./schemas");
 
-//Use express parser
-app.use(express.urlencoded({ extended: true }));
-//Use method override
-app.use(methodOverride("_method"));
-//Use morgan
-app.use(morgan("common"));
-
-//Use EJS mate engine
-app.engine("ejs", ejsEngine);
-
-//Set EJS
-app.set("view engine", "ejs");
-//Set views directory
-app.set("views", path.join(__dirname, "views"));
+//Routes
+const campgrounds = require("./routes/campgrounds");
+const reviews = require("./routes/reviews");
 
 //Connect to mongodb
 mongoose.connect("mongodb://localhost:27017/Welp-Camp", {
    useNewUrlParser: true,
+   useCreateIndex: true,
    useUnifiedTopology: true,
+   useFindAndModify: false,
 });
 
 //Check for mongo errors
@@ -49,134 +37,58 @@ db.once("open", () => {
    console.log("Database connected");
 });
 
-//Validate inputs using JOI
-const validateCampground = (req, res, next) => {
-   //campground schema for validation using JOI
-   const { error } = campgroundSchema.validate(req.body);
-   if (error) {
-      //Map key value pairs of element message // combine them together
-      const msg = error.details.map((el) => el.message).join(",");
-      throw new ExpressError(msg, 400);
-   } else {
-      next();
-   }
+//Use express parser
+app.use(express.urlencoded({ extended: true }));
+//Use method override
+app.use(methodOverride("_method"));
+//Use morgan
+app.use(morgan("common"));
+//Use EJS mate engine
+app.engine("ejs", ejsEngine);
+//Set EJS
+app.set("view engine", "ejs");
+//Set views directory
+app.set("views", path.join(__dirname, "views"));
+//Set public directory
+app.use(express.static(path.join(__dirname, "public")));
+
+//express session
+const sessionConfig = {
+   secret: "secret",
+   resave: false,
+   saveUninitialized: true,
+   cookie: {
+      httpOnly: true,
+      expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+   },
 };
-//Validate review inputs using JOi
-const validateReview = (req, res, next) => {
-   const { error } = reviewSchema.validate(req.body);
-   if (error) {
-      const msg = error.details.map((el) => el.message).join(",");
-      throw new ExpressError(msg, 400);
-   } else {
-      next();
-   }
-};
+
+app.use(session(sessionConfig));
+//Flash
+app.use(flash());
+
+app.use((req, res, next) => {
+   res.locals.success = req.flash("success");
+   res.locals.error = req.flash("error");
+   next();
+});
+
+//express Routers
+app.use("/campgrounds", campgrounds);
+app.use("/campgrounds/:id/reviews", reviews);
 
 //Home GET route
 app.get("/", (req, res) => {
    res.render("home");
 });
 
-//Camgrounds GET route
-app.get(
-   "/campgrounds",
-   wrapAysnc(async (req, res) => {
-      //find all campgrounds in Campground model
-      const campgrounds = await Campground.find({});
-      res.render("campgrounds/index", { campgrounds });
-   })
-);
-
-//New campground route
-app.get("/campgrounds/new", (req, res) => {
-   res.render("campgrounds/new");
-});
-
-//New campground POST route
-app.post(
-   "/campgrounds",
-   validateCampground,
-   wrapAysnc(async (req, res) => {
-      const campground = new Campground(req.body.campground);
-      await campground.save();
-      res.redirect(`/campgrounds/${campground._id}`);
-   })
-);
-
-//Campground show route
-app.get(
-   "/campgrounds/:id",
-   wrapAysnc(async (req, res) => {
-      //Deconstruct id form request
-      const { id } = req.params;
-      //Find campground with the same id
-      const campground = await Campground.findById(id).populate("reviews");
-      res.render("campgrounds/show", { campground });
-   })
-);
-
-//Edit campground route
-app.get(
-   "/campgrounds/:id/edit",
-   wrapAysnc(async (req, res) => {
-      const campground = await Campground.findById(req.params.id);
-      res.render("campgrounds/edit", { campground });
-   })
-);
-
-//Update campground put request
-app.put(
-   "/campgrounds/:id",
-   validateCampground,
-   wrapAysnc(async (req, res) => {
-      const { id } = req.params;
-      // Spread campground data
-      const campground = await Campground.findByIdAndUpdate(id, {
-         ...req.body.campground,
-      });
-      res.redirect(`/campgrounds/${campground._id}`);
-   })
-);
-
-//Review Routes
-app.post(
-   "/campgrounds/:id/reviews",
-   validateReview,
-   wrapAysnc(async (req, res) => {
-      const campground = await Campground.findById(req.params.id);
-      const review = new Review(req.body.review);
-      campground.reviews.push(review);
-      await review.save();
-      await campground.save();
-      res.redirect(`/campgrounds/${campground._id}`);
-   })
-);
-
-//Delete campground review route
-app.delete(
-   "/campgrounds/:id/reviews/:reviewId",
-   wrapAysnc(async (req, res) => {
-      const { id, reviewId } = req.params;
-      await Campground.findByIdAndUpdate(id, { $pull: { reviews: reviewId } });
-      await Review.findByIdAndDelete(reviewId);
-      res.redirect(`/campgrounds/${id}`);
-   })
-);
-
-//Delete campground request
-app.delete(
-   "/campgrounds/:id",
-   wrapAysnc(async (req, res) => {
-      const { id } = req.params;
-      const campground = await Campground.findByIdAndDelete(id);
-      res.redirect("/campgrounds");
-   })
-);
-
+//General error middleware 404
 app.all("*", (req, res, next) => {
    next(new ExpressError("Page Not Found", 404));
 });
 
+//Specific error middleware
 app.use((err, req, res, next) => {
    const { status = 500 } = err;
    if (!err.message) err.message = "Oh No, Something Went Wrong!";

@@ -15,43 +15,20 @@
       <title>WelpCamp</title>
    </head>
    <body class="d-flex flex-column vh-100">
-      <%- include("../partials/navbar") %> 
-      <main class="container mt-5"><%- body %></main>
+      <%- include("../partials/navbar") %>
+      <main class="container mt-5">
+         <%- include("../partials/flash") %>
+         <%- body %>
+      </main>
 
-      <%- include("../partials/footer") %> 
+      <%- include("../partials/footer") %>
       <!-- JavaScript Bundle with Popper -->
       <script
          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js"
          integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0"
          crossorigin="anonymous"
       ></script>
-      
-<script>
-   // Example starter JavaScript for disabling form submissions if there are invalid fields
-   (function () {
-      "use strict";
 
-      // Fetch all the forms we want to apply custom Bootstrap validation styles to
-      const forms = document.querySelectorAll(".validated-form");
-
-      // Loop over them and prevent submission
-      Array.from(forms).forEach(function (form) {
-         form.addEventListener(
-            "submit",
-            function (event) {
-               if (!form.checkValidity()) {
-                  event.preventDefault();
-                  event.stopPropagation();
-               }
-
-               form.classList.add("was-validated");
-            },
-            false
-         );
-      });
-   })();
-</script>
-
+      <script src="/js/validateForms.js"></script>
    </body>
-   
 </html>
