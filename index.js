@@ -15,12 +15,16 @@ const methodOverride = require("method-override");
 const morgan = require("morgan");
 //Require EJS mate
 const ejsEngine = require("ejs-mate");
-//Require campground and review schema JOI
-const { campgroundSchema, reviewSchema } = require("./schemas");
+//Require passport
+const passport = require("passport");
+const LocalStrategy = require("passport-local");
+//user models
+const User = require("./models/user");
 
 //Routes
 const campgrounds = require("./routes/campgrounds");
 const reviews = require("./routes/reviews");
+const userRoutes = require("./routes/users");
 
 //Connect to mongodb
 mongoose.connect("mongodb://localhost:27017/Welp-Camp", {
@@ -68,6 +72,13 @@ app.use(session(sessionConfig));
 //Flash
 app.use(flash());
 
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new LocalStrategy(User.authenticate()));
+
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
 app.use((req, res, next) => {
    res.locals.success = req.flash("success");
    res.locals.error = req.flash("error");
@@ -77,7 +88,7 @@ app.use((req, res, next) => {
 //express Routers
 app.use("/campgrounds", campgrounds);
 app.use("/campgrounds/:id/reviews", reviews);
-
+app.use("/", userRoutes);
 //Home GET route
 app.get("/", (req, res) => {
    res.render("home");
