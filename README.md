@@ -13,3 +13,4 @@ connect flash
 Mongoose
 Method Override
 JOI 
+Passport, Passport-Local, and Passport-Local-Mongoose
