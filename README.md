@@ -8,6 +8,8 @@ ejs
 ## Dependencies
 EJS
 Express
+Express session
+connect flash
 Mongoose
 Method Override
 JOI 
