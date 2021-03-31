@@ -5,6 +5,8 @@ const wrapAysnc = require("../utils/wrapAysnc");
 const ExpressError = require("../utils/ExpressError");
 
 const Campground = require("../models/campground");
+//Check if logged in middle ware
+const { isLoggedIn } = require("../middleware");
 
 //Require campground and review schema JOI
 const { campgroundSchema } = require("../schemas");
@@ -33,13 +35,14 @@ router.get(
 );
 
 //New campground route
-router.get("/new", (req, res) => {
+router.get("/new", isLoggedIn, (req, res) => {
    res.render("campgrounds/new");
 });
 
 //New campground POST route
 router.post(
    "/",
+   isLoggedIn,
    validateCampground,
    wrapAysnc(async (req, res) => {
       const campground = new Campground(req.body.campground);
@@ -68,6 +71,7 @@ router.get(
 //Edit campground route
 router.get(
    "/:id/edit",
+   isLoggedIn,
    wrapAysnc(async (req, res) => {
       const campground = await Campground.findById(req.params.id);
       if (!campground) {
@@ -81,6 +85,7 @@ router.get(
 //Update campground put request
 router.put(
    "/:id",
+   isLoggedIn,
    validateCampground,
    wrapAysnc(async (req, res) => {
       const { id } = req.params;
@@ -96,6 +101,7 @@ router.put(
 //Delete campground request
 router.delete(
    "/:id",
+   isLoggedIn,
    wrapAysnc(async (req, res) => {
       const { id } = req.params;
       const campground = await Campground.findByIdAndDelete(id);
