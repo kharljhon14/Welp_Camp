@@ -18,6 +18,11 @@ router.post(
          const user = new User({ email, username });
          const resgisteredUser = await User.register(user, password);
          req.flash("success", "Welcome User");
+         req.login(resgisteredUser, (err) => {
+            if (err) {
+               return next(err);
+            }
+         });
          res.redirect("/campgrounds");
       } catch (err) {
          req.flash("error", err.message);
@@ -32,12 +37,14 @@ router.get("/login", (req, res) => {
 
 router.post("/login", passport.authenticate("local", { failureFlash: true, failureRedirect: "/login" }), (req, res) => {
    req.flash("success", "Welcome Back!");
-   res.redirect("/campgrounds");
+   const redirectUrl =  req.session.returnTo || "/campgrounds"; 
+   delete req.session.returnTo;
+   res.redirect(redirectUrl);
 });
 
 router.get("/logout", (req, res) => {
    req.logout();
-   req.flash("success", "Bye!")
+   req.flash("success", "Bye!");
    res.redirect("/");
 });
 
