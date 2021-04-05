@@ -24,6 +24,16 @@ const validateCampground = (req, res, next) => {
    }
 };
 
+const isAuthor = async (req, res, next) => {
+   const { id } = req.params;
+   const campground = await Campground.findById(id);
+   if (!campground.author.equals(req.user._id)) {
+      req.flash("error", "You do not have permision to do that!");
+      return res.redirect(`/campgrounds/${id}`);
+   }
+   next();
+};
+
 //Camgrounds GET route
 router.get(
    "/",
@@ -73,17 +83,13 @@ router.get(
 router.get(
    "/:id/edit",
    isLoggedIn,
+   isAuthor,
    wrapAysnc(async (req, res) => {
       const { id } = req.params;
       const campground = await Campground.findById(id);
       if (!campground) {
          req.flash("error", "Cannot find that campground");
          return res.redirect("/campgrounds");
-      }
-
-      if (!campground.author.equals(req.user._id)) {
-         req.flash("error", "You do not have permision to do that!");
-         return res.redirect(`/campgrounds/${id}`);
       }
       res.render("campgrounds/edit", { campground });
    })
@@ -93,16 +99,11 @@ router.get(
 router.put(
    "/:id",
    isLoggedIn,
+   isAuthor,
    validateCampground,
    wrapAysnc(async (req, res) => {
       const { id } = req.params;
-      const campground = await Campground.findById(id);
-      if (!campground.author.equals(req.user._id)) {
-         req.flash("error", "You do not have permision to do that!");
-         return res.redirect(`/campgrounds/${id}`);
-      }
-      // Spread campground data
-      const camp = await Campground.findByIdAndUpdate(id, {
+      const campground = await Campground.findByIdAndUpdate(id, {
          ...req.body.campground,
       });
       req.flash("success", "Successfully updated campground");
@@ -114,6 +115,7 @@ router.put(
 router.delete(
    "/:id",
    isLoggedIn,
+   isAuthor,
    wrapAysnc(async (req, res) => {
       const { id } = req.params;
       const campground = await Campground.findByIdAndDelete(id);
